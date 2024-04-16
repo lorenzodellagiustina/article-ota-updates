@@ -1,5 +1,5 @@
 # OTA updates for a formula car
-In this article I'll go through the steps I followed to build a custom transport layer protocol to enable a formula car to receive firmware updates over-the-air.
+In this article I'll go through the steps I followed to build a custom transport layer protocol to enable a formula car to receive [firmware updates over-the-air](https://en.wikipedia.org/wiki/Over-the-air_update).
 
 Before starting with the project development itself, in the next paragraph you can better understand the reasons why I built it in the first place.
 
@@ -41,14 +41,14 @@ In other words, we need a way to transfer reliably the update file from our comp
   <figcaption>Fig.4 - A frame in our communication pipeline.</figcaption>
 </figure>
 
-So in order to transfer the update file, we need to split it into frames. And to be sure that every frame isn't lost, the receiver must acknowledge every frame. The most simple protocol to do this is [stop and wait](https://en.wikipedia.org/wiki/Stop-and-wait_ARQ). Using this method, the sender sends one frame at a time and every time waits for an acknowledge before sending the next frame. If it does not receive it within a certain period of time, it means that the frame was lost. Therefore, the sender resends the frame.
+So in order to transfer the update file, we need to split it into frames. And to be sure that every frame isn't lost, the receiver must acknowledge every frame. The most simple protocol to do this is stop and wait. Using this method, the sender sends one frame at a time and every time waits for an acknowledge before sending the next frame. If it does not receive it within a certain period of time, it means that the frame was lost. Therefore, the sender resends the frame.
 
 <figure>
  <img alt="Stop and wait protocol" src="images/stop-and-wait.png">
   <figcaption>Fig.5 - Stop and wait protocol.</figcaption>
 </figure>
 
-TODO: (for more infos about stop and wait link to wikipedia)
+> **_NOTE:_** In this article the stop and wait protocol is deliberately simplified. For more in depth information about it, I suggest you to read the [Wikipedia page](https://en.wikipedia.org/wiki/Stop-and-wait_ARQ) or the [GeeksforGeeks article](https://www.geeksforgeeks.org/stop-and-wait-arq/).
 
 This protocol is really easy to implement, but as soon as I tested it, I noticed it had a huge problem: it was far too slow. Sending an update would take up to 7 hours. But why? An update file is approximately 2MB and the throughput of the communication pipeline is 500Kbps. If we are using the whole throughput it should take $\frac{8*2MB}{500Kbps} = 32s$. In order to find out what was slowing down the file transfer this much, I connected my Saleae logic analyzer to the CAN bus.
 
