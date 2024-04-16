@@ -42,7 +42,7 @@ In other words, we need a way to transfer reliably the update file from our comp
 So in order to transfer the update file, we need to split it into frames. And to be sure that every frame isn't lost, the receiver must acknowledge every frame. The most simple protocol to do this is _stop and wait_. Using this method, the sender sends one frame at a time and every time waits for an acknowledge before sending the next frame. If it does not receive it within a certain period of time, it means that the frame was lost. Therefore, the sender resends the frame.
 
 <figure>
- <img alt="Stop and wait protocol" src="images/frame.png">
+ <img alt="Stop and wait protocol" src="images/stop-and-wait.png">
   <figcaption>Fig.5 - Stop and wait protocol.</figcaption>
 </figure>
 
@@ -60,7 +60,7 @@ Using Logic[^2][Software of Saleae logic analyzers] I analyzed the CAN bus durin
 [^2]: Software of Saleae logic analyzers.
 
 <figure>
- <img alt="Logic screenshot during OTA update using the stop and wait protocol" src="images/stop-and-wait-logic.png">
+ <img alt="Logic screenshot during OTA update using the stop and wait protocol" src="images/stop-and-wait-logic.jpg">
   <figcaption>Fig.7 - Logic screenshot during OTA update using the stop and wait protocol.</figcaption>
 </figure>
 
@@ -84,7 +84,7 @@ To me, 256 frames for each packet seemed like a reasonable choice:
 Using the same setup as before, we can analyze the efficiency (i.e. usage of the channel) of our new protocol.
 
 <figure>
- <img alt="256 frames' packets - logic screenshot" src="images/bigger-chunks-logic.png">
+ <img alt="256 frames' packets - logic screenshot" src="images/bigger-chunks-logic.jpg">
   <figcaption>Fig.8 - 256 frames' packets - logic screenshot.</figcaption>
 </figure>
 
