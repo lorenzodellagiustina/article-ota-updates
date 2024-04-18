@@ -91,7 +91,7 @@ $$
 
 To me, 256 frames for each packet seemed like a reasonable choice:
 - For each packet we need only 1 byte per frame as index (inside each packet, frames must be indexed in order to know if any was lost).
-- Would make the update faster: $\frac{2B*10^8}{256*7B} \approx 1m 52s$.
+- Would make the update faster: $\frac{8*2MB}{500Kbps} = 32s$.
 - Losing a frame would require to send only 2KiB again.
 
 Using the same setup as before, we can analyze the efficiency (i.e. usage of the channel) of our new protocol.
