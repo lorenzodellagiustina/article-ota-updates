@@ -31,7 +31,7 @@ In particular, we took part in the Spanish and Italian competitions as an EV tea
 
 Our car had N VCU[^1]s in order to work properly and send telemetry data to the box while running. These VCUs were securely stored in specific enclosures that did not expose the boards' serial port, making the wiring harness lighter and easier. However, this design choice caused a problem: every time we had to update the version of the firmware we had to physically disassemble the car, which took a lot of time.
 
-[^1]: Vehicle Control Unit: an electronic control unit that manages a vehicle's systems like balancing the battery pack.
+[^1]: Vehicle Control Unit: an electronic control unit that manages a vehicle's system, like controlling the motor speed.
 
 To solve this annoying issue for the incoming competition season, we decided to introduce OTA updates support. An OTA (or over-the-air) update is an update to an embedded system (like a VCU) that is delivered through a wireless network (like Wi-Fi). This technology is the same used for updating smartphones without connecting them to a computer over USB.
 
@@ -70,7 +70,7 @@ This protocol is really easy to implement, but as soon as I tested it, I noticed
 
 Using Logic[^3] I analyzed the CAN bus during an OTA update
 
-[^3]: Software of Saleae logic analyzers.
+[^3]: Software of Saleae's logic analyzers.
 
 <figure>
  <img alt="Logic screenshot during OTA update using the stop and wait protocol" src="images/stop-and-wait-logic.jpg">
@@ -87,18 +87,18 @@ $$
 100s * \frac{2MB}{8B} = \frac{2B*10^8}{8B} = 25 *10^6ms \approx 7h
 $$
 
-7h is obviously not fast enough. Disassembling the car and flashing via serial port the VCUs would be much faster. The equation above that estimate the time for the transfer to be completed gives us a hint about how to make the update faster: making the frames bigger. Unfortunately, the standard CAN bus protocol doesn't let us send frames bigger than 8 bytes. What we could do instead is sending multiple frames together as a single "packet" that needs only a single acknowledge. Theoretically, making the packet as big as the file that we are sending would make our transfer faster. However, losing a single frame would mean sending again the whole update.
+7h is obviously not fast enough. Disassembling the car and flashing via serial port the VCUs would be much faster. The equation above that estimate the time for the transfer to be completed gives us a hint about how to make the update faster: making the frames bigger. Unfortunately, the standard CAN bus protocol doesn't let us send frames bigger than 8 bytes. What we could do instead is sending multiple frames together as a single "packet" that needs only a single cumulative acknowledge. Theoretically, making the packet as big as the file that we are sending would make our transfer faster. However, losing a single frame would mean sending again the whole update.
 
 To me, 256 frames for each packet seemed like a reasonable choice:
 - For each packet we need only 1 byte per frame as index (inside each packet, frames must be indexed in order to know if any was lost).
-- Would make the update faster: $\frac{2B*10^8}{256 * 7B} \approx 1m 52s$.
+- Would make the update faster enough: $\frac{2B*10^8}{256 * 7B} \approx 1m 52s$.
 - Losing a frame would require to send only 2KiB again.
 
 Using the same setup as before, we can analyze the efficiency (i.e. usage of the channel) of our new protocol.
 
 <figure>
- <img alt="256 frames' packets - logic screenshot" src="images/bigger-chunks-logic.jpg">
-  <figcaption>Fig.8 - 256 frames' packets - logic screenshot.</figcaption>
+ <img alt="Logic screenshot during OTA update using packets of 256 frames each" src="images/bigger-chunks-logic.jpg">
+  <figcaption>Fig.8 - Logic screenshot during OTA update using packets of 256 frames each.</figcaption>
 </figure>
 
 As can be seen in the screenshot above, the channel is now used for more than 1/3 of the time. As expected the time required by an update now is little less than 2 minutes.
