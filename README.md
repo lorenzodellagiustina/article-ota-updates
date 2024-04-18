@@ -1,3 +1,14 @@
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        processEscapes: true
+      }
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+    type="text/javascript"></script>
+
 # OTA updates for a formula car
 In this article I'll go through the steps I followed to build a custom transport layer protocol to enable a formula car to receive [firmware updates over-the-air](https://en.wikipedia.org/wiki/Over-the-air_update).
 
