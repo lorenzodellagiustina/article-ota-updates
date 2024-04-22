@@ -12,24 +12,24 @@
 # OTA updates for a formula car
 In this article I'll go through the steps I followed to build a custom transport layer protocol to enable a formula car to receive [firmware updates over-the-air](https://en.wikipedia.org/wiki/Over-the-air_update).
 
-Before starting with the project development itself, in the next paragraph you can better understand the reasons why I built it in the first place.
+Before delving into the details of the project, the next paragraph will give a bit of context, introducing the reasons that led to the problem.
 
 ## The purpose of the project
-In the 2023 season, I participated as a [UniUD E-Racing](https://formulasae.uniud.it/) team member in some [competitions between universities](https://en.wikipedia.org/wiki/Formula_SAE) where students design a formula style race car and compete against other teams.
+In the 2023 season, I took part in a few [inter-university engineering competitions](https://en.wikipedia.org/wiki/Formula_SAE) as a member of the [UniUD E-Racing](https://formulasae.uniud.it/) team, where students design a formula style race car and compete against other teams.
 
 <figure>
  <img alt="Barcelona-Catalunya circuit, practice area" src="images/practice-area-small.png">
   <figcaption>Fig.1 - Barcelona-Catalunya circuit, practice area.</figcaption>
 </figure>
 
-In particular, we took part in the Spanish and Italian competitions as an EV team (i.e. a team that competes with an electric vehicle).
+In particular, we took part in the Spanish and Italian competitions as an EV team (i.e. a team that competes with an Electric Vehicle).
 
 <figure>
  <img alt="Schematic of the car's VCUs" src="images/vcu-schematic.png">
   <figcaption>Fig.2 - Schematic of the car's VCUs.</figcaption>
 </figure>
 
-Our car had N VCU[^1]s in order to work properly and send telemetry data to the box while running. These VCUs were securely stored in specific enclosures that did not expose the boards' serial port, making the wiring harness lighter and easier. However, this design choice caused a problem: every time we had to update the version of the firmware we had to physically disassemble the car, which took a lot of time.
+Our car had N VCU[^1]s in order to work properly and send telemetry data remotely to the box while running. These VCUs were securely stored in specific enclosures that did not expose the boards' serial port, making the wiring harness lighter and easier. However, this design choice caused a problem: every time we had to update the version of the firmware we had to physically disassemble parts of the car, which took a lot of time.
 
 [^1]: Vehicle Control Unit: an electronic control unit that manages a vehicle's system, like controlling the motor speed.
 
@@ -45,14 +45,14 @@ Since we already have a communication system among all VCUs and a base station (
   <figcaption>Fig.3 - Representation of the car's communication pipeline.</figcaption>
 </figure>
 
-In other words, we need a way to transfer reliably the update file from our computer to the Target VCU passing through UART, Wi-Fi and CAN bus. Knowing what these protocols are and how they work is not important to understand the rest of the article. Must just be noted that messages circulating in this system are frames with an ID and a content of up to 8 bytes in order to be easily transmitted via CAN bus. An ID is an identification code to distinguish messages; for example, the messages of the throttle and the brakes have different IDs.
+In other words, we need a way to reliably transfer the update file from our computer to the Target VCU passing through UART, Wi-Fi and CAN bus. Knowing what these protocols are and how they work is not important to understand the rest of the article. It is sufficient to notice that messages circulating in this system are frames with an ID and a payload of up to 8 bytes in order to be easily transmitted via CAN bus. An ID is an identification code to distinguish messages; for example, the messages of the throttle and the brakes have different IDs.
 
 <figure>
  <img alt="A frame in our communication pipeline" src="images/frame.png">
   <figcaption>Fig.4 - A frame in our communication pipeline.</figcaption>
 </figure>
 
-So in order to transfer the update file, we need to split it into frames. And to be sure that every frame isn't lost, the receiver must acknowledge every frame. The most simple protocol to do this is stop and wait. Using this method, the sender sends one frame at a time and every time waits for an acknowledge before sending the next frame. If it does not receive it within a certain period of time, it means that the frame was lost. Therefore, the sender resends the frame.
+So in order to transfer the update file, we need to split it into frames. And to be sure that no frame is lost, the receiver must acknowledge every frame. The most simple protocol to do this is stop and wait. Using this method, the sender sends one frame at a time and every time waits for an acknowledge before sending the next frame. If it does not receive it within a certain period of time, it means that the frame was lost. Therefore, the sender resends the frame.
 
 <figure>
  <img alt="Stop and wait protocol" src="images/stop-and-wait.png">
@@ -77,17 +77,30 @@ Using Logic[^3] I analyzed the CAN bus during an OTA update
   <figcaption>Fig.7 - Logic screenshot during OTA update using the stop and wait protocol.</figcaption>
 </figure>
 
-The vertical lines correspond to frames being transmitted in the can bus. It was clear that for most of the time the channel (CAN bus and therefore UART and Wi-Fi) was left unused. But why? What was happening?
+The vertical lines correspond to frames being transmitted in the CAN bus. It was clear that for most of the time the channel (CAN bus and therefore UART and Wi-Fi) was left unused. But why? What was happening?
 
 Well, frames were sent by my laptop one at a time, waiting the acknowledge from the Target VCU. The time that a frame required to be acknowledged (called round trip time) was approximately 100ms. So, only one frame every 100ms was sent. The 100ms of "silence" are the huge gaps between frames that can be seen in the screenshot above.
 
 Knowing that each frame contained 8 bytes of data, and that we send a frame every ~100ms, an update file of 2MB would take almost 7hrs to be transferred to the Target VCU:
 
 $$
-100s * \frac{2MB}{8B} = \frac{2B*10^8}{8B} = 25 *10^6ms \approx 7h
+100ms * \frac{2MB}{8B} = \frac{2B*10^8}{8B} = 2.5 *10^7ms \approx 7h
 $$
 
-7h is obviously not fast enough. Disassembling the car and flashing via serial port the VCUs would be much faster. The equation above that estimate the time for the transfer to be completed gives us a hint about how to make the update faster: making the frames bigger. Unfortunately, the standard CAN bus protocol doesn't let us send frames bigger than 8 bytes. What we could do instead is sending multiple frames together as a single "packet" that needs only a single cumulative acknowledge. Theoretically, making the packet as big as the file that we are sending would make our transfer faster. However, losing a single frame would mean sending again the whole update.
+7h is obviously not fast enough. Disassembling the car and flashing via serial port the VCUs would be much faster. The equation above that estimate the time for the transfer to be completed gives us a hint about how to make the update faster: making the frames bigger. Unfortunately, the standard CAN bus protocol doesn't let us send frames bigger than 8 bytes. What we could do instead is sending multiple frames together as a single "packet" that needs only a single cumulative acknowledge.
+
+How big should the packet be in order to maximize the protocol efficiency? To find an answer to this question, I made some assumptions:
+- The round trip time is 100ms.
+- The probability of losing a frame is 0.5%.
+- The overall bandwidth of the channel (the lowest among CAN bus, Wi-Fi and UART) is 500Kbps.
+- A packet needs to index its frames in order to know if any was lost. This index requires $⌈\log_2(n)⌉$ bits, where $n$ is the number of frames in the packet.
+
+Given these hypotheses we can find the optimal number of frames for each packet.
+
+<iframe src="https://www.desmos.com/calculator/mmmzfczyk8?embed" width="500" height="500" style="border: 1px solid #ccc" frameborder=0></iframe>
+
+
+Theoretically, making the packet as big as the file that we are sending would make our transfer faster. However, losing a single frame would mean sending again the whole update.
 
 To me, 256 frames for each packet seemed like a reasonable choice:
 - For each packet we need only 1 byte per frame as index (inside each packet, frames must be indexed in order to know if any was lost).
@@ -101,7 +114,7 @@ Using the same setup as before, we can analyze the efficiency (i.e. usage of the
   <figcaption>Fig.8 - Logic screenshot during OTA update using packets of 256 frames each.</figcaption>
 </figure>
 
-As can be seen in the screenshot above, the channel is now used for more than 1/3 of the time. As expected the time required by an update now is little less than 2 minutes.
+As can be seen in the screenshot above, the channel is now used for more than 1/3 of the time. As expected, the time required by an update now is little less than 2 minutes.
 
 ## Future improvements
 
