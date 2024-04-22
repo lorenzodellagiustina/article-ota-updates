@@ -98,7 +98,7 @@ How big should the packet be in order to maximize the protocol efficiency? To fi
 Given these hypotheses we can find the optimal number of frames for each packet: 65536. An in depth analysis of why this is the most suitable choice can be found in the Desmos graph below.
 
 <figure>
-    <iframe src="https://www.desmos.com/calculator/mmmzfczyk8?embed" style="border: 1px solid #ccc" frameborder=0></iframe>
+    <iframe src="https://www.desmos.com/calculator/mmmzfczyk8?embed" width="100%" height="300px" style="border: 1px solid #ccc" frameborder=0></iframe>
     <figcaption>Fig.8 - Estimation of the time required by an update with the stop and wait protocol in relation to the length of the sequence number.</figcaption>
 </figure>
 
