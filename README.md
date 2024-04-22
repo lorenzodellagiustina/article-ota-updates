@@ -61,7 +61,7 @@ So in order to transfer the update file, we need to split it into frames. And to
 
 > **_NOTE:_** In this article the stop and wait protocol is deliberately simplified. For more in depth information about it, I suggest you to read the [Wikipedia page](https://en.wikipedia.org/wiki/Stop-and-wait_ARQ) or the [GeeksforGeeks article](https://www.geeksforgeeks.org/stop-and-wait-arq/).
 
-This protocol is really easy to implement, but as soon as I tested it, I noticed it had a huge problem: it was far too slow. Sending an update would take up to 7 hours. But why? An update file is approximately 2MB and the throughput of the communication pipeline is 500Kbps. If we are using the whole throughput it should take $\frac{8*2MB}{500Kbps} = 32s$. In order to find out what was slowing down the file transfer this much, I connected my Saleae logic analyzer to the CAN bus.
+This protocol is really easy to implement, but as soon as I tested it, I noticed it had a huge problem: it was far too slow. Sending an update would take up to 7 hours. But why? An update file is approximately 2MB and the throughput of the communication pipeline is 500Kbps. If we are using the whole throughput it should take $\frac{8*2MB}{500Kbps} = 32s$. Are we losing so many frames? In order to find out what was slowing down the file transfer this much, I connected my Saleae logic analyzer to the CAN bus.
 
 <figure>
  <img alt="Representation of where the analyzer was connected" src="images/analyzer-pos.png">
@@ -81,13 +81,13 @@ The vertical lines correspond to frames being transmitted in the CAN bus. It was
 
 Well, frames were sent by my laptop one at a time, waiting the acknowledge from the Target VCU. The time that a frame required to be acknowledged (called round trip time) was approximately 100ms. So, only one frame every 100ms was sent. The 100ms of "silence" are the huge gaps between frames that can be seen in the screenshot above.
 
-Knowing that each frame contained 8 bytes of data, and that we send a frame every ~100ms, an update file of 2MB would take almost 7hrs to be transferred to the Target VCU:
+Knowing that each frame contained 8 bytes of data, and that we send a frame every ~100ms, an update file of 2MB would take almost 7 hours to be transferred to the Target VCU if no frame is lost:
 
 $$
 100ms * \frac{2MB}{8B} = \frac{2B*10^8}{8B} = 2.5 *10^7ms \approx 7h
 $$
 
-7h is obviously not fast enough. Disassembling the car and flashing via serial port the VCUs would be much faster. The equation above that estimate the time for the transfer to be completed gives us a hint about how to make the update faster: making the frames bigger. Unfortunately, the standard CAN bus protocol doesn't let us send frames bigger than 8 bytes. What we could do instead is sending multiple frames together as a single "packet" that needs only a single cumulative acknowledge.
+7 hours is obviously not fast enough. Disassembling the car and flashing via serial port the VCUs would be much faster. The equation above that estimate the time for the transfer to be completed gives us a hint about how to make the update faster: making the frames bigger. Unfortunately, the standard CAN bus protocol doesn't let us send frames bigger than 8 bytes. What we could do instead is sending multiple frames together as a single "packet" that needs only a single cumulative acknowledge.
 
 How big should the packet be in order to maximize the protocol efficiency? To find an answer to this question, I made some assumptions:
 - The round trip time is 100ms.
@@ -95,16 +95,18 @@ How big should the packet be in order to maximize the protocol efficiency? To fi
 - The overall bandwidth of the channel (the lowest among CAN bus, Wi-Fi and UART) is 500Kbps.
 - A packet needs to index its frames in order to know if any was lost. This index requires $⌈\log_2(n)⌉$ bits, where $n$ is the number of frames in the packet.
 
-Given these hypotheses we can find the optimal number of frames for each packet: 65536. An in depth analysis of why I chose this number can be found in the Desmos graph below.
+Given these hypotheses we can find the optimal number of frames for each packet: 65536. An in depth analysis of why this is the most suitable choice can be found in the Desmos graph below.
 
-<iframe src="https://www.desmos.com/calculator/mmmzfczyk8?embed" style="border: 1px solid #ccc" frameborder=0></iframe>
+<figure>
+    <iframe src="https://www.desmos.com/calculator/mmmzfczyk8?embed" style="border: 1px solid #ccc" frameborder=0></iframe>
+    <figcaption>Fig.8 - Estimation of the time required by an update with the stop and wait protocol in relation to the length of the sequence number.</figcaption>
+</figure>
 
-
-Theoretically, making the packet as big as the file that we are sending would make our transfer faster. However, losing a single frame would mean sending again the whole update.
+Using the same setup as before, we can analyze the efficiency (i.e. usage of the channel) of the enhanced protocol version.
 
 <figure>
  <img alt="Logic screenshot during OTA update using packets of 256 frames each" src="images/bigger-chunks-logic.jpg">
-  <figcaption>Fig.8 - Logic screenshot during OTA update using packets of 256 frames each.</figcaption>
+  <figcaption>Fig.9 - Logic screenshot during OTA update using packets of 256 frames each.</figcaption>
 </figure>
 
 As can be seen in the screenshot above, the channel is now used for more than 1/3 of the time. As expected, the time required by an update now is little less than 2 minutes.
