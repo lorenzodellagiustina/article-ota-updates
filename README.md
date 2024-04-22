@@ -95,19 +95,12 @@ How big should the packet be in order to maximize the protocol efficiency? To fi
 - The overall bandwidth of the channel (the lowest among CAN bus, Wi-Fi and UART) is 500Kbps.
 - A packet needs to index its frames in order to know if any was lost. This index requires $⌈\log_2(n)⌉$ bits, where $n$ is the number of frames in the packet.
 
-Given these hypotheses we can find the optimal number of frames for each packet.
+Given these hypotheses we can find the optimal number of frames for each packet: 65536. An in depth analysis of why I chose this number can be found in the Desmos graph below.
 
-<iframe src="https://www.desmos.com/calculator/mmmzfczyk8?embed" width="500" height="500" style="border: 1px solid #ccc" frameborder=0></iframe>
+<iframe src="https://www.desmos.com/calculator/mmmzfczyk8?embed" style="border: 1px solid #ccc" frameborder=0></iframe>
 
 
 Theoretically, making the packet as big as the file that we are sending would make our transfer faster. However, losing a single frame would mean sending again the whole update.
-
-To me, 256 frames for each packet seemed like a reasonable choice:
-- For each packet we need only 1 byte per frame as index (inside each packet, frames must be indexed in order to know if any was lost).
-- Would make the update faster enough: $\frac{2B*10^8}{256 * 7B} \approx 1m 52s$.
-- Losing a frame would require to send only 2KiB again.
-
-Using the same setup as before, we can analyze the efficiency (i.e. usage of the channel) of our new protocol.
 
 <figure>
  <img alt="Logic screenshot during OTA update using packets of 256 frames each" src="images/bigger-chunks-logic.jpg">
