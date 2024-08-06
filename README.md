@@ -9,12 +9,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
     type="text/javascript"></script>
 
-# OTA updates for a formula car
 In this article I'll go through the steps I followed to build a custom transport layer protocol to enable a formula car to receive [firmware updates over-the-air](https://en.wikipedia.org/wiki/Over-the-air_update).
 
 Before delving into the details of the project implementation, the next paragraph will give a bit of context, introducing the reasons that led to the problem.
 
-## The purpose of the project
+# The purpose of the project
 In the 2023 summer season, I took part in a two [inter-university engineering competitions](https://en.wikipedia.org/wiki/Formula_SAE) as a firmware and software developer for the [UniUD E-Racing](https://formulasae.uniud.it/) team.
 In these competitions, students design and build a formula style race car to compete against other teams.
 
@@ -38,7 +37,7 @@ Unfortunately, this design choice caused a problem: every time we had to update 
 
 To solve this annoying issue for the incoming competition season of 2024, we decided to introduce OTA updates support. An OTA (or over-the-air) update is an update to an embedded system (like a ECU) that is delivered through a wireless network (like Wi-Fi). This technology is the same used for updating smartphones without connecting them to a computer over USB.
 
-## The development
+# The development
 Since we already have a communication system among all ECUs and a base station (a bridge[^2] and a laptop) for telemetry purposes, the most reasonable way to perform OTA updates is to use the same communication channels. More specifically, the communication pipeline looks like this:
 
 [^2]: A bridge is a device that connects two different networks. In our case, it connects the car to the laptop.
@@ -116,7 +115,7 @@ Using the same setup as before, we can analyze the efficiency (i.e. usage of the
 
 As can be seen in the screenshot above, the channel is now used for more than 1/3 of the time. As expected, the time required by an update now is little less than 2 minutes.
 
-## Future improvements
+# Future improvements
 
 For the purpose of my project, performing an update in \~2 minutes is enough. However, as can be clearly seen in the figure above, there is plenty of room for improvement.
 
