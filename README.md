@@ -1,10 +1,3 @@
----
-layout: post
-title: "OTA Updates for a Formula Car"
-date: 2024-08-06
-categories: [engineering, firmware]
----
-
 <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
       tex2jax: {
@@ -27,7 +20,7 @@ In the 2023 summer season, I participated as a firmware and software developer f
 In these competitions, students design and build a formula style race car to compete against other teams.
 
 <figure>
- <img alt="Barcelona-Catalunya circuit, practice area" src="images/practice-area-small.png">
+ <img alt="Barcelona-Catalunya circuit, practice area" src="assets/images/practice-area-small.png">
   <figcaption>Fig.1 - Barcelona-Catalunya circuit, UniUD E-Racing car testing in the practice area.</figcaption>
 </figure>
 
@@ -52,21 +45,21 @@ Since we already have a communication system among all ECUs and a base station (
 [^3]: A bridge is a device that connects two different networks. In our case, it connects the car to the laptop.
 
 <figure>
- <img alt="Car's communication pipeline" src="images/car-communication-pipeline.png">
+ <img alt="Car's communication pipeline" src="assets/images/car-communication-pipeline.png">
   <figcaption>Fig.3 - Representation of the car's communication pipeline.</figcaption>
 </figure>
 
 In other words, we need a way to reliably transfer the update file from our computer to the Target ECU passing through UART, Wi-Fi and CAN bus. Knowing what these protocols are and how they work is not important to understand the rest of the article. It is sufficient to notice that messages circulating in this system are frames with an ID and a payload of up to 8 bytes in order to be easily transmitted via CAN bus. An ID is an identification code to distinguish messages; for example, the messages of the throttle and the brakes have different IDs.
 
 <figure>
- <img alt="Frame representation" src="images/frame.png">
+ <img alt="Frame representation" src="assets/images/frame.png">
   <figcaption>Fig.4 - A frame in our communication pipeline.</figcaption>
 </figure>
 
 So, in order to transfer the update file, we need to split it into frames. And to be sure that no frame is lost, the receiver must acknowledge every frame. The simplest protocol to do this is _stop and wait_. Using this method, the sender sends one frame at a time and every time waits for an acknowledge before sending the next frame. If it does not receive it within a certain period of time, it means that the frame was lost. Therefore, the sender resends the frame.
 
 <figure>
- <img alt="Stop and wait protocol" src="images/stop-and-wait.png">
+ <img alt="Stop and wait protocol" src="assets/images/stop-and-wait.png">
   <figcaption>Fig.5 - Stop and wait protocol.</figcaption>
 </figure>
 
@@ -77,7 +70,7 @@ This protocol is really easy to implement, but as soon as I tested it, I noticed
 > **_NOTE:_** Using an high end logic analyzer like the Saleae paired with a well-built software is crucial to efficiently debug and understand what is happening in a communication system.
 
 <figure>
- <img alt="2024 car dashboard" src="images/saleae-connected.jpg">
+ <img alt="2024 car dashboard" src="assets/images/saleae-connected.jpg">
   <figcaption>Fig.6 - 2024 car dashboard. The Saleae logic analyzer connected to the CAN bus of target ECU that is receiving the update.</figcaption>
 </figure>
 
@@ -86,7 +79,7 @@ Using [Logic](https://discuss.saleae.com/)[^4] I analyzed the CAN bus during an 
 [^4]: Software of Saleae's logic analyzers.
 
 <figure>
- <img alt="Logic screenshot" src="images/stop-and-wait-logic-resized.jpg">
+ <img alt="Logic screenshot" src="assets/images/stop-and-wait-logic-resized.jpg">
   <figcaption>Fig.7 - Logic screenshot during OTA update using the stop and wait protocol.</figcaption>
 </figure>
 
@@ -118,7 +111,7 @@ Based on these assumptions, we determined the optimal number of frames for each 
 Using the same setup as before, we can analyze the efficiency (i.e. usage of the channel) of the enhanced protocol version.
 
 <figure>
- <img alt="Logic screenshot" src="images/bigger-chunks-logic.jpg">
+ <img alt="Logic screenshot" src="assets/images/bigger-chunks-logic.jpg">
   <figcaption>Fig.9 - Logic screenshot during OTA update using packets of 256 frames each.</figcaption>
 </figure>
 

@@ -1,0 +1,20 @@
+.author-signature {
+    margin-top: 20px;
+    font-style: italic;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+  }
+  
+  .author-signature p {
+    margin: 0;
+  }
+  
+  .author-signature a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .author-signature a:hover {
+    text-decoration: underline;
+  }
+  
