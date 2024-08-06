@@ -25,10 +25,10 @@ In these competitions, students design and build a formula style race car to com
 
 In particular, we took part in the Spanish and Italian competitions as an EV team, i.e. a team that competes with an Electric Vehicle.
 
-<figure>
+<!-- <figure>
  <img alt="Schematic of the car's ECUs" src="images/ECUs.png">
   <figcaption>Fig.2 - Schematic of the car's ECUs.</figcaption>
-</figure>
+</figure> -->
 
 Our car had 6 ECU[^1]s in order to work properly and send telemetry data remotely to the box while running. These ECUs were securely stored in specific enclosures that did not expose the boards' serial port, making the wiring harness lighter and easier.
 
@@ -73,7 +73,7 @@ This protocol is really easy to implement, but as soon as I tested it, I noticed
   <figcaption>Fig.6 - 2024 car dashboard. The Saleae logic analyzer connected to the CAN bus of target ECU that is receiving the update.</figcaption>
 </figure>
 
-Using Logic[^3] I analyzed the CAN bus during an OTA update
+Using [Logic](https://discuss.saleae.com/)[^3] I analyzed the CAN bus during an OTA update
 
 [^3]: Software of Saleae's logic analyzers.
 
