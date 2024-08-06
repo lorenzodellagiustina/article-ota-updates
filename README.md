@@ -9,15 +9,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
     type="text/javascript"></script>
 
-In this article I'll go through the steps I followed to build a custom transport layer protocol[^1] to enable a formula car to receive [firmware updates over-the-air](https://en.wikipedia.org/wiki/Over-the-air_update).
+In this article I'll go through the steps I followed to build a custom transport layer protocol[^1] to enable a Formula car to receive [firmware updates over-the-air](https://en.wikipedia.org/wiki/Over-the-air_update).
 
 [^1]: In computer networking ISO/OSI stack, the transport layer is the fourth layer that provides end-to-end communication services for applications.
 
 Before delving into the details of the project implementation, the next paragraph will give a bit of context, introducing the reasons that led to the problem.
 
 # The purpose of the project
-In the 2023 summer season, I participated as a firmware and software developer for the [UniUD E-Racing](https://formulasae.uniud.it/) team in a two [inter-university engineering competitions](https://en.wikipedia.org/wiki/Formula_SAE).
-In these competitions, students design and build a formula style race car to compete against other teams.
+In the 2023 summer season, I participated as a firmware and software developer for the [UniUD E-Racing](https://formulasae.uniud.it/) team in two [inter-university engineering competitions](https://en.wikipedia.org/wiki/Formula_SAE).
+In these competitions, students design and build a Formula style race car to compete against other teams.
 
 <figure>
  <img alt="Barcelona-Catalunya circuit, practice area" src="assets/images/practice-area-small.png">
@@ -37,7 +37,7 @@ Unfortunately, this design choice caused a problem: every time we had to update 
 
 [^2]: Electronic control unit: is an embedded system that controls one or more of the electrical systems in a car.
 
-To solve this annoying issue for the incoming competition season of 2024, we decided to introduce OTA updates support. An OTA (or over-the-air) update is an update to an embedded system (like a ECU) that is delivered through a wireless network (like Wi-Fi). This technology is the same used for updating smartphones without connecting them to a computer over USB.
+To solve this annoying issue for the incoming competition season of 2024, we decided to introduce OTA updates support. An OTA (or over-the-air) update is an update to an embedded system (like an ECU) that is delivered through a wireless network (like Wi-Fi). This technology is the same used for updating smartphones without connecting them to a computer over USB.
 
 # The development
 Since we already have a communication system among all ECUs and a base station (a bridge[^3] and a laptop) for telemetry purposes, the most reasonable way to perform OTA updates is to use the same communication channels. More specifically, the communication pipeline looks like this:
@@ -71,7 +71,7 @@ This protocol is really easy to implement, but as soon as I tested it, I noticed
 
 <figure>
  <img alt="2024 car dashboard" src="assets/images/saleae-connected.jpg">
-  <figcaption>Fig.6 - 2024 car dashboard. The Saleae logic analyzer connected to the CAN bus of target ECU that is receiving the update.</figcaption>
+  <figcaption>Fig.6 - 2024 car dashboard. The Saleae logic analyzer connected to the CAN bus of the target ECU that is receiving the update.</figcaption>
 </figure>
 
 Using [Logic](https://discuss.saleae.com/)[^4] I analyzed the CAN bus during an OTA update
@@ -93,7 +93,7 @@ $$
 100ms * \frac{2MB}{8B} = \frac{2B*10^8}{8B} = 2.5 *10^7ms \approx 7h
 $$
 
-7 hours is obviously not fast enough. Disassembling the car and flashing via serial port the ECUs would be much faster. The equation above that estimate the time for the transfer to be completed gives us a hint about how to make the update faster: making the frames bigger. Unfortunately, the standard CAN bus protocol doesn't let us send frames bigger than 8 bytes. What we could do instead is sending multiple frames together as a single "packet" that needs only a single cumulative acknowledge.
+7 hours is obviously not fast enough. Disassembling the car and flashing via serial port the ECUs would be much faster. The equation above that estimate the time for the transfer to be completed gives us an hint about how to make the update faster: making the frames bigger. Unfortunately, the standard CAN bus protocol doesn't let us send frames bigger than 8 bytes. What we could do instead is sending multiple frames together as a single "packet" that needs only a single cumulative acknowledge.
 
 How big should the packet be in order to maximize the protocol efficiency? To find an answer to this question, I made some assumptions:
 - The round trip time is 100ms.
