@@ -125,4 +125,5 @@ To take advantage of almost the whole bandwidth of the channel, we could impleme
 
 Anyway, the protocol I developed is already a great starting point for the team. It is reliable and fast enough for our needs. Overall it has potential to dramatically improve our workflow saving us a lot of time, especially during the competition days.
 
+<br>
 {% include author-signature.html %}
