@@ -33,7 +33,7 @@ In particular, we took part in the Spanish and Italian competitions as an EV tea
 
 Our car had 6 ECU[^2]s in order to work properly and send telemetry data remotely to the box while running. These ECUs were securely stored in specific enclosures that did not expose the boards' serial port, making the wiring harness lighter and easier.
 
-Unfortunately, this design choice caused a problem: every time we had to update the version of the firmware we had to physically disassemble parts of the car, which took a lot of time.
+Unfortunately, this design choice caused a problem: every time we had to update the version of the firmware, we had to physically disassemble parts of the car, which took a lot of time.
 
 [^2]: Electronic control unit: is an embedded system that controls one or more of the electrical systems in a car.
 
@@ -125,5 +125,4 @@ To take advantage of almost the whole bandwidth of the channel, we could impleme
 
 Anyway, the protocol I developed is already a great starting point for the team. It is reliable and fast enough for our needs. Overall it has potential to dramatically improve our workflow saving us a lot of time, especially during the competition days.
 
-<br>
 {% include author-signature.html %}
