@@ -1,3 +1,10 @@
+---
+layout: post
+title: "OTA Updates for a Formula Car"
+date: 2024-08-06
+categories: [engineering, firmware]
+---
+
 <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
       tex2jax: {
@@ -124,3 +131,5 @@ For this project’s objective, completing an update in approximately 2 minutes 
 To take advantage of almost the whole bandwidth of the channel, we could implement a TCP-like sliding window protocol. Basically, to provide a reliable connection, TCP does not stop to transmit frames while waiting for an acknowledge.
 
 Anyway, the protocol I developed is already a great starting point for the team. It is reliable and fast enough for our needs. Overall it has potential to dramatically improve our workflow saving us a lot of time, especially during the competition days.
+
+{% include author-signature.html %}
